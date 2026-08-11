@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#17324d">
+  <title>동원훈련 소속중대 확인</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif;background:#eef2f6;color:#17202a}
+    body{display:flex;justify-content:center;align-items:flex-start;padding:18px 12px 32px}
+    .app{width:100%;max-width:560px}
+    .card{background:#fff;border:1px solid #dfe6ee;border-radius:18px;box-shadow:0 8px 30px rgba(20,42,64,.10);overflow:hidden}
+    .header{background:#17324d;color:#fff;padding:24px 20px 20px;text-align:center}
+    .header h1{font-size:24px;margin:0 0 8px;font-weight:800;letter-spacing:-.5px}
+    .period{display:inline-block;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);padding:8px 12px;border-radius:999px;font-weight:700;font-size:14px}
+    .content{padding:22px 18px 24px}
+    .sub{text-align:center;color:#5d6d7e;font-size:15px;line-height:1.55;margin:0 0 18px}
+    label.field{display:block;font-weight:700;margin-bottom:8px;font-size:14px}
+    input[type=text]{width:100%;height:52px;border:1.5px solid #cfd8e3;border-radius:12px;padding:0 15px;font-size:18px;outline:none;background:#fff}
+    input[type=text]:focus{border-color:#2f6fb0;box-shadow:0 0 0 3px rgba(47,111,176,.12)}
+    button{border:0;border-radius:12px;font-weight:800;font-size:17px;cursor:pointer;touch-action:manipulation}
+    .primary{width:100%;height:52px;margin-top:12px;background:#1769aa;color:#fff}
+    .primary:active{transform:translateY(1px)}
+    .secondary{width:100%;height:50px;background:#238a57;color:#fff}
+    .ghost{width:100%;height:48px;background:#eef3f7;color:#26445f;margin-top:12px}
+    .status{text-align:center;min-height:24px;margin:14px 0 0;font-weight:800;color:#263645}
+    .error{color:#b42318}
+    .hidden{display:none!important}
+    .duplicate-title{font-size:21px;font-weight:900;text-align:center;margin:0 0 6px}
+    .duplicate-help{text-align:center;color:#637282;font-size:14px;margin:0 0 16px;line-height:1.45}
+    .choices{display:grid;gap:10px;margin-bottom:14px}
+    .choice{display:flex;align-items:center;gap:12px;border:1.5px solid #d7e0e9;border-radius:13px;padding:14px;background:#fbfcfd;cursor:pointer}
+    .choice:has(input:checked){border-color:#1769aa;background:#eef7ff}
+    .choice input{width:21px;height:21px;flex:0 0 auto}
+    .choice-main{font-size:17px;font-weight:850}
+    .choice-sub{display:block;margin-top:4px;color:#607080;font-size:14px;font-weight:600}
+    .result-box{background:#f7f9fb;border:1px solid #dfe6ee;border-radius:15px;padding:18px}
+    .result-main{font-size:21px;line-height:1.5;text-align:center;margin:0 0 16px}
+    .company{font-weight:900;color:#0d5c9d;font-size:25px}
+    .notice{border-top:1px solid #dde4eb;padding-top:16px;margin-top:8px}
+    .notice h2{font-size:19px;margin:0 0 10px}
+    .notice ol{margin:0;padding-left:22px;line-height:1.58;font-size:15px}
+    .notice li{margin:7px 0}
+    .security{margin-top:16px;display:grid;gap:9px}
+    .security a{display:block;text-decoration:none;border:1px solid #cdd9e5;background:#fff;border-radius:12px;padding:13px 14px;font-weight:800;color:#0d5c9d}
+    .footer-note{text-align:center;color:#71808f;font-size:12px;line-height:1.45;margin-top:14px}
+    @media(max-width:420px){
+      body{padding:0;background:#fff}
+      .card{border-radius:0;border-left:0;border-right:0;box-shadow:none;min-height:100vh}
+      .header{padding-top:max(22px,env(safe-area-inset-top))}
+      .content{padding:20px 16px 28px}
+      .header h1{font-size:22px}
+      .result-main{font-size:19px}
+      .company{font-size:23px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="card">
+      <header class="header">
+        <h1>동원훈련 소속중대 확인</h1>
+        <div class="period">훈련기간: 2026. 9. 8.(화) ~ 9. 10.(목)</div>
+      </header>
+
+      <div class="content">
+        <section id="formSection">
+          <p class="sub">성명을 입력하고 본인의 소속 중대를 확인하세요.</p>
+          <label class="field" for="nameInput">성명</label>
+          <input id="nameInput" type="text" autocomplete="name" inputmode="text" placeholder="예: 육두산" maxlength="20">
+          <button id="searchButton" class="primary" type="button">중대 검색</button>
+          <div id="message" class="status" aria-live="polite">119여단 2대대</div>
+        </section>
+
+        <section id="duplicateSection" class="hidden" aria-hidden="true">
+          <h2 class="duplicate-title">동명이인입니다</h2>
+          <p class="duplicate-help">아래 명단에서 본인의 생년월일을 확인한 뒤 선택하세요.</p>
+          <div id="duplicateList" class="choices" role="radiogroup" aria-label="동명이인 선택"></div>
+          <button id="selectButton" class="secondary" type="button">선택 완료</button>
+          <button id="duplicateBackButton" class="ghost" type="button">다시 검색</button>
+          <div id="duplicateMessage" class="status error" aria-live="polite"></div>
+        </section>
+
+        <section id="resultSection" class="hidden" aria-hidden="true">
+          <div class="result-box">
+            <p id="finalMessage" class="result-main"></p>
+
+            <div class="notice">
+              <h2>예비군 안내사항</h2>
+              <ol>
+                <li>문진표를 작성하여 안보교육관으로 이동 바랍니다.</li>
+                <li>중대 인도인접 전 개인별 생활관 이동은 금지됩니다.</li>
+                <li>금일 인도인접은 12시까지이며, 13시까지 지연입소가 가능합니다.</li>
+                <li>인도인접 후 내무실에 도착하면 장구류를 확인 바랍니다.</li>
+                <li>금일 오후에는 14시부터 총기를 지급하고, 16시부터 대대장 및 중대장 간담회, 19시부터 안보교육이 진행됩니다.</li>
+                <li>궁금한 사항은 교관 및 중대장에게 문의 바랍니다.</li>
+                <li>아래 링크에 따라 국방 모바일 보안앱(외부인)을 설치 바랍니다.</li>
+              </ol>
+
+              <div class="security">
+                <a href="https://play.google.com/store/apps/details?id=kr.go.mnd.mmsa.vt" target="_blank" rel="noopener noreferrer">
+                  Android · 국방 모바일 보안앱(외부인) 설치
+                </a>
+                <a href="https://apps.apple.com/kr/app/%EA%B5%AD%EB%B0%A9%EB%AA%A8%EB%B0%94%EC%9D%BC%EB%B3%B4%EC%95%88-%EC%99%B8%EB%B6%80%EC%9D%B8/id1489115591" target="_blank" rel="noopener noreferrer">
+                  iOS · 국방 모바일 보안앱(외부인) 설치
+                </a>
+              </div>
+            </div>
+
+            <button id="restartButton" class="secondary" style="margin-top:18px" type="button">중대 재검색</button>
+          </div>
+        </section>
+
+        <div class="footer-note">테스트용 명단 10건 · Google 검색 로그 연동</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 테스트용 10건만 유지합니다.
+      // 육두산, 칠두산은 각각 동명이인 선택 기능 시험용입니다.
+      const reservistData = [
+        { name: '일두산', dob: '010101', company: '5중대' },
+        { name: '이두산', dob: '010102', company: '6중대' },
+        { name: '삼두산', dob: '010103', company: '7중대' },
+        { name: '사두산', dob: '010104', company: '8중대' },
+        { name: '오두산', dob: '010105', company: '본부중대' },
+        { name: '육두산', dob: '970106', company: '5중대' },
+        { name: '육두산', dob: '010118', company: '6중대' },
+        { name: '칠두산', dob: '980107', company: '7중대' },
+        { name: '칠두산', dob: '010119', company: '8중대' },
+        { name: '팔두산', dob: '960108', company: '의무중대' }
+      ];
+
+      // 작년 index.html에 들어 있던 사용자 Google Apps Script 로그 주소를 유지합니다.
+      // 배포 주소가 바뀐 경우 이 값만 새 Apps Script 웹앱 URL로 교체하면 됩니다.
+      const GOOGLE_LOG_URL =
+        'https://script.google.com/macros/s/AKfycby-PhgbHD1mOfkYamo6ZJLq0q9TtkLKzlSLDKDQzgWFd27rd-IHcl3AJO4L-g1Y58wxFA/exec';
+
+      const formSection = document.getElementById('formSection');
+      const duplicateSection = document.getElementById('duplicateSection');
+      const resultSection = document.getElementById('resultSection');
+      const nameInput = document.getElementById('nameInput');
+      const searchButton = document.getElementById('searchButton');
+      const message = document.getElementById('message');
+      const duplicateList = document.getElementById('duplicateList');
+      const duplicateMessage = document.getElementById('duplicateMessage');
+      const selectButton = document.getElementById('selectButton');
+      const duplicateBackButton = document.getElementById('duplicateBackButton');
+      const finalMessage = document.getElementById('finalMessage');
+      const restartButton = document.getElementById('restartButton');
+
+      let currentMatches = [];
+      let currentSearchName = '';
+
+      function setView(target) {
+        formSection.classList.toggle('hidden', target !== 'form');
+        duplicateSection.classList.toggle('hidden', target !== 'duplicate');
+        resultSection.classList.toggle('hidden', target !== 'result');
+        formSection.setAttribute('aria-hidden', target === 'form' ? 'false' : 'true');
+        duplicateSection.setAttribute('aria-hidden', target === 'duplicate' ? 'false' : 'true');
+        resultSection.setAttribute('aria-hidden', target === 'result' ? 'false' : 'true');
+      }
+
+      function fullYearFromYY(yy) {
+        const n = Number(yy);
+        return n <= 26 ? 2000 + n : 1900 + n;
+      }
+
+      function formatDob(dob) {
+        const raw = String(dob).padStart(6, '0');
+        const year = fullYearFromYY(raw.slice(0,2));
+        return `${year}. ${raw.slice(2,4)}. ${raw.slice(4,6)}.`;
+      }
+
+      function toFullDob(dob) {
+        const raw = String(dob || '').padStart(6, '0');
+        if (!dob) return '';
+        return `${fullYearFromYY(raw.slice(0,2))}${raw.slice(2)}`;
+      }
+
+      function logSearch({ name, dob = '', company = '', result = '', duplicate = false }) {
+        if (!GOOGLE_LOG_URL) return;
+
+        const payload = {
+          name,
+          dob: toFullDob(dob),
+          company,
+          result,
+          duplicate: duplicate ? 'Y' : 'N',
+          userAgent: navigator.userAgent,
+          ip: '',
+          timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+        };
+
+        try {
+          fetch(GOOGLE_LOG_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            keepalive: true,
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify(payload)
+          }).catch(() => {});
+        } catch (_) {}
+      }
+
+      function search() {
+        const name = nameInput.value.trim();
+        message.classList.remove('error');
+
+        if (!name) {
+          message.textContent = '성함을 입력하세요.';
+          message.classList.add('error');
+          nameInput.focus();
+          return;
+        }
+
+        currentSearchName = name;
+        currentMatches = reservistData.filter(r => r.name === name);
+
+        if (currentMatches.length === 0) {
+          message.textContent = '명단에 없습니다. 성명 확인 후 다시 시도하세요.';
+          message.classList.add('error');
+          logSearch({ name, result: '명단 없음', duplicate: false });
+          return;
+        }
+
+        if (currentMatches.length === 1) {
+          showResult(currentMatches[0], false);
+          return;
+        }
+
+        showDuplicate(currentMatches);
+      }
+
+      function showDuplicate(matches) {
+        duplicateList.innerHTML = '';
+        duplicateMessage.textContent = '';
+
+        matches.forEach((r, index) => {
+          const label = document.createElement('label');
+          label.className = 'choice';
+          label.innerHTML = `
+            <input type="radio" name="reservistChoice" value="${index}">
+            <span>
+              <span class="choice-main">${escapeHtml(r.name)}</span>
+              <span class="choice-sub">생년월일 ${escapeHtml(formatDob(r.dob))}</span>
+            </span>
+          `;
+          duplicateList.appendChild(label);
+        });
+
+        logSearch({
+          name: currentSearchName,
+          result: `동명이인 ${matches.length}명 표시`,
+          duplicate: true
+        });
+
+        setView('duplicate');
+      }
+
+      function chooseDuplicate() {
+        const selected = document.querySelector('input[name="reservistChoice"]:checked');
+        if (!selected) {
+          duplicateMessage.textContent = '본인의 생년월일을 선택해주세요.';
+          return;
+        }
+        const r = currentMatches[Number(selected.value)];
+        showResult(r, true);
+      }
+
+      function showResult(r, wasDuplicate) {
+        finalMessage.innerHTML =
+          `<strong>${escapeHtml(r.name)}</strong> 예비군은<br>` +
+          `<span class="company">${escapeHtml(r.company)}</span>입니다.`;
+
+        logSearch({
+          name: r.name,
+          dob: r.dob,
+          company: r.company,
+          result: '중대 확인 완료',
+          duplicate: wasDuplicate
+        });
+
+        setView('result');
+      }
+
+      function reset() {
+        currentMatches = [];
+        currentSearchName = '';
+        nameInput.value = '';
+        message.textContent = '119여단 2대대';
+        message.classList.remove('error');
+        duplicateMessage.textContent = '';
+        setView('form');
+        setTimeout(() => nameInput.focus(), 50);
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, ch => ({
+          '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+        }[ch]));
+      }
+
+      searchButton.addEventListener('click', search);
+      nameInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') search();
+      });
+      selectButton.addEventListener('click', chooseDuplicate);
+      duplicateBackButton.addEventListener('click', reset);
+      restartButton.addEventListener('click', reset);
+    });
+  </script>
+</body>
+</html>
