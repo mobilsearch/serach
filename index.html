@@ -24,7 +24,7 @@
     .primary:active{transform:translateY(1px)}
     .secondary{width:100%;height:50px;background:#238a57;color:#fff}
     .ghost{width:100%;height:48px;background:#eef3f7;color:#26445f;margin-top:12px}
-    .status{text-align:center;min-height:24px;margin:14px 0 0;font-weight:800;color:#263645}
+    .status{text-align:center;min-height:24px;margin:14px 0 0;font-weight:800;color:#263645;white-space:pre-line;line-height:1.55}
     .error{color:#b42318}
     .hidden{display:none!important}
     .duplicate-title{font-size:21px;font-weight:900;text-align:center;margin:0 0 6px}
@@ -181,16 +181,108 @@
         return `${fullYearFromYY(raw.slice(0,2))}${raw.slice(2)}`;
       }
 
+      function getOrCreateSessionId() {
+        try {
+          let id = sessionStorage.getItem('mobilsearch_session_id');
+          if (!id) {
+            id = (crypto && crypto.randomUUID)
+              ? crypto.randomUUID().slice(0, 8)
+              : Math.random().toString(36).slice(2, 10);
+            sessionStorage.setItem('mobilsearch_session_id', id);
+          }
+          return id;
+        } catch (_) {
+          return '';
+        }
+      }
+
+      function getDeviceInfo() {
+        const ua = navigator.userAgent || '';
+        const uaLower = ua.toLowerCase();
+        const touch = (navigator.maxTouchPoints || 0) > 0;
+
+        let device = '노트북/데스크톱';
+        if (/ipad|tablet/.test(uaLower) || (/android/.test(uaLower) && !/mobile/.test(uaLower))) {
+          device = '태블릿';
+        } else if (/iphone/.test(uaLower)) {
+          device = 'iPhone';
+        } else if (/android/.test(uaLower) && /mobile/.test(uaLower)) {
+          device = 'Android 휴대폰';
+        }
+
+        let os = '기타';
+        if (/windows nt/.test(uaLower)) os = 'Windows';
+        else if (/android/.test(uaLower)) {
+          const m = ua.match(/Android\s([0-9.]+)/i);
+          os = m ? `Android ${m[1]}` : 'Android';
+        } else if (/iphone|ipad/.test(uaLower)) {
+          const m = ua.match(/OS\s([0-9_]+)/i);
+          os = m ? `iOS ${m[1].replaceAll('_', '.')}` : 'iOS';
+        } else if (/mac os x/.test(uaLower)) os = 'macOS';
+        else if (/linux/.test(uaLower)) os = 'Linux';
+
+        let browser = '기타';
+        let m;
+        if ((m = ua.match(/Edg\/([0-9.]+)/))) browser = `Edge ${m[1].split('.')[0]}`;
+        else if ((m = ua.match(/CriOS\/([0-9.]+)/))) browser = `Chrome ${m[1].split('.')[0]}`;
+        else if ((m = ua.match(/Chrome\/([0-9.]+)/))) browser = `Chrome ${m[1].split('.')[0]}`;
+        else if ((m = ua.match(/FxiOS\/([0-9.]+)/))) browser = `Firefox ${m[1].split('.')[0]}`;
+        else if ((m = ua.match(/Firefox\/([0-9.]+)/))) browser = `Firefox ${m[1].split('.')[0]}`;
+        else if (/safari/i.test(ua) && (m = ua.match(/Version\/([0-9.]+)/))) browser = `Safari ${m[1].split('.')[0]}`;
+
+        let model = '알 수 없음';
+        if (/iphone/.test(uaLower)) {
+          model = 'Apple iPhone';
+        } else if (/ipad/.test(uaLower)) {
+          model = 'Apple iPad';
+        } else if (/android/.test(uaLower)) {
+          const modelMatch = ua.match(/Android[^;]*;\s*(?:[a-z]{2}[-_][A-Z]{2};\s*)?([^;)]+?)\s+Build\//i);
+          if (modelMatch) {
+            const rawModel = modelMatch[1].trim();
+            if (/^SM-[A-Z0-9]+/i.test(rawModel)) model = `Samsung ${rawModel.match(/^SM-[A-Z0-9]+/i)[0]}`;
+            else if (/^Pixel/i.test(rawModel)) model = `Google ${rawModel}`;
+            else model = rawModel;
+          }
+        }
+
+        let bit = '알 수 없음';
+        if (/win64|x64|x86_64|amd64/.test(uaLower)) bit = '64비트';
+        else if (/wow64|i686|x86/.test(uaLower)) bit = '32비트';
+
+        return {
+          device,
+          model,
+          os,
+          browser,
+          bit,
+          screenSize: `${screen.width}×${screen.height}`,
+          sessionId: getOrCreateSessionId(),
+          language: navigator.language || '',
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+          touch: touch ? 'Y' : 'N'
+        };
+      }
+
       function logSearch({ name, dob = '', company = '', result = '', duplicate = false }) {
         if (!GOOGLE_LOG_URL) return;
 
+        const info = getDeviceInfo();
         const payload = {
           name,
+          dob: dob ? toFullDob(dob) : '',
           company,
           result,
           duplicate: duplicate ? 'Y' : 'N',
-          userAgent: navigator.userAgent,
-          ip: '',
+          device: info.device,
+          model: info.model,
+          os: info.os,
+          browser: info.browser,
+          bit: info.bit,
+          screenSize: info.screenSize,
+          sessionId: info.sessionId,
+          language: info.language,
+          timezone: info.timezone,
+          touch: info.touch,
           timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
         };
 
@@ -220,7 +312,7 @@
         currentMatches = reservistData.filter(r => r.name === name);
 
         if (currentMatches.length === 0) {
-          message.textContent = '명단에 없습니다. 성명 확인 후 다시 시도하세요.';
+          message.textContent = '입력하신 성명을 확인할 수 없습니다.\n성명을 정확히 입력했는지 확인한 후 다시 검색해 주세요.\n계속 확인되지 않으면 통제관에게 문의해 주세요.';
           message.classList.add('error');
           logSearch({ name, result: '명단 없음', duplicate: false });
           return;
